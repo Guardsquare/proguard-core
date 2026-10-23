@@ -1,17 +1,19 @@
 package proguard.analysis.cpa
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmMethodTaintSource
 import proguard.analysis.cpa.jvm.domain.taint.JvmReturnTaintSink
+import proguard.analysis.cpa.jvm.domain.taint.JvmStaticFieldTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.util.TaintAnalyzer
+import proguard.classfile.FieldSignature
 import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
-class TraceExtractorTest : StringSpec({
+class TraceExtractorTest : BehaviorSpec({
 
     val taintSourceReturn1 = JvmMethodTaintSource(
         MethodSignature("A", "source1", "()Ljava/lang/String;"),
@@ -32,8 +34,9 @@ class TraceExtractorTest : StringSpec({
         false,
         false,
         setOf(),
-        setOf("A.s:Ljava/lang/String;"),
+        setOf("A.staticSourceField:Ljava/lang/String;"),
     )
+    val taintSourceFieldRead = JvmStaticFieldTaintSource(FieldSignature("A", "staticSourceField", "Ljava/lang/String;"))
     val taintSourceReturnDouble = JvmMethodTaintSource(
         MethodSignature("A", "source", "()D"),
         false,
@@ -69,11 +72,11 @@ class TraceExtractorTest : StringSpec({
         MethodSignature("A", "sink", "()V"),
         false,
         setOf(),
-        setOf("A.s:Ljava/lang/String;"),
+        setOf("A.staticSourceField:Ljava/lang/String;"),
     )
     val taintSinkReturn = JvmReturnTaintSink(MethodSignature("A", "sink", "(Ljava/lang/String;)Ljava/lang/String;"))
 
-    "Simple interprocedural flows are reconstructed" {
+    Given("A main method passing a callee's source method result to a sink, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -108,22 +111,27 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:3",
-                "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:3",
+                        "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Interprocedural traces in callees are reconstructed" {
+    Given("A callee passing a nested callee's source method result to a sink, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -163,22 +171,27 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;callee1()V:3",
-                "JvmStackLocation(0)@LA;callee2()Ljava/lang/String;:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;callee1()V:3",
+                        "JvmStackLocation(0)@LA;callee2()Ljava/lang/String;:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Multiple interprocedural traces are reconstructed" {
+    Given("A main method passing two source method results through a callee to a sink, two returning sources, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -219,47 +232,50 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(
-            interproceduralCfa,
-            setOf(taintSourceReturn1, taintSourceReturn2),
-            setOf(taintSinkArgument),
-        )
-            .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer = TaintAnalyzer.Builder(
+                interproceduralCfa,
+                setOf(taintSourceReturn1, taintSourceReturn2),
+                setOf(taintSinkArgument),
+            )
+                .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        interproceduralCfa.clear()
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
 
-        /*
-    Bytecode of main:
-        [0] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-        [3] invokestatic #3 = Methodref(A.callee(Ljava/lang/String;)V)
-        [6] invokestatic #4 = Methodref(A.source2()Ljava/lang/String;)
-        [9] invokestatic #3 = Methodref(A.callee(Ljava/lang/String;)V)
-        [12] return
+                /*
+            Bytecode of main:
+                [0] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+                [3] invokestatic #3 = Methodref(A.callee(Ljava/lang/String;)V)
+                [6] invokestatic #4 = Methodref(A.source2()Ljava/lang/String;)
+                [9] invokestatic #3 = Methodref(A.callee(Ljava/lang/String;)V)
+                [12] return
 
-     Bytecode of callee:
-         [0] aload_0 v0
-         [1] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
-         [4] return
-    */
+             Bytecode of callee:
+                 [0] aload_0 v0
+                 [1] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
+                 [4] return
+            */
 
-        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1",
-                "JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0",
-                "JvmStackLocation(0)@LA;main()V:3",
-            ),
-            listOf(
-                "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1",
-                "JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0",
-                "JvmStackLocation(0)@LA;main()V:9",
-            ),
-        )
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1",
+                        "JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                    listOf(
+                        "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1",
+                        "JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0",
+                        "JvmStackLocation(0)@LA;main()V:9",
+                    ),
+                )
+            }
+        }
     }
 
-    "Interprocedural traces through static fields are reconstructed" {
+    Given("A main method calling a sink reading a static field tainted in a callee, a method source tainting the field, and a static field sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -267,7 +283,7 @@ class TraceExtractorTest : StringSpec({
                     """
                     class A {
 
-                        public static String s;
+                        public static String staticSourceField;
                     
                         public void main() {
                             callee();
@@ -298,21 +314,26 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceStatic), setOf(taintSinkStatic))
-            .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceStatic), setOf(taintSinkStatic))
+                .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main()V:3",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;callee()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Explicit static updates are supported" {
+    Given("A main method passing a static field written with a source method result in a callee to a sink, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -320,16 +341,16 @@ class TraceExtractorTest : StringSpec({
                     """
                     class A {
 
-                        public static String s;
+                        public static String staticSourceField;
                     
                         public void main() {
                             callee();
-                            sink(s);
+                            sink(staticSourceField);
                         }
                     
                         public static void callee()
                         {
-                            s = source1();
+                            staticSourceField = source1();
                         }
                     
                         public static void sink(String s)
@@ -351,24 +372,204 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:6",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
-                "JvmStackLocation(0)@LA;callee()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:6",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main()V:3",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;callee()V:6",
+                        "JvmStackLocation(0)@LA;callee()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Intermediate library calls don't disrupt the trace" {
+    Given("A main method passing a static field read stored in a local across an intermediate call to a sink, a static field source, and an argument sink") {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
+                    class A {
+
+                        public static String staticSourceField;
+
+                        public void main() {
+                            String t = staticSourceField;
+                            foo();
+                            sink(t);
+                        }
+
+                        public static void foo()
+                        {
+                        }
+
+                        public static void sink(String s)
+                        {
+                        }
+                    }
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
+
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceFieldRead), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
+
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                /*
+            Bytecode of main:
+                [0] getstatic #7 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [3] astore_1 v1
+                [4] invokestatic #13 = Methodref(A.foo()V)
+                [7] aload_1 v1
+                [8] invokestatic #16 = Methodref(A.sink(Ljava/lang/String;)V)
+                [11] return
+             */
+
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:8",
+                        "JvmLocalVariableLocation(1)@LA;main()V:7",
+                        "JvmLocalVariableLocation(1)@LA;main()V:4",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                )
+            }
+        }
+    }
+
+    Given("A main method passing a static field written with a source method result in a callee to a sink, a static field source, and an argument sink") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "A.java",
+                """
+                class A {
+
+                    public static String staticSourceField;
+
+                    public void main() {
+                        callee();
+                        sink(staticSourceField);
+                    }
+
+                    public static void callee()
+                    {
+                        staticSourceField = source1();
+                    }
+
+                    public static void sink(String s)
+                    {
+                    }
+
+                    public static String source1()
+                    {
+                        return null;
+                    }
+                }
+                """.trimIndent(),
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+        )
+
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool)
+            val mainSignature =
+                interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }
+                    .findFirst().get().signature
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceFieldRead), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
+
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                /*
+            Bytecode of main:
+                [0] invokestatic #7 = Methodref(A.callee()V)
+                [3] getstatic #12 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [6] invokestatic #16 = Methodref(A.sink(Ljava/lang/String;)V)
+                [9] return
+
+            Bytecode of callee:
+                [0] invokestatic #20 = Methodref(A.source1()Ljava/lang/String;)
+                [3] putstatic #12 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [6] return
+             */
+
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:6",
+                    ),
+                )
+            }
+        }
+
+        When("TaintAnalyzer analyzes taints with an additional returning source and reconstructs traces") {
+            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool)
+            val mainSignature =
+                interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }
+                    .findFirst().get().signature
+            val taintAnalyzer = TaintAnalyzer.Builder(
+                interproceduralCfa,
+                setOf(taintSourceFieldRead, taintSourceReturn1),
+                setOf(taintSinkArgument),
+            )
+                .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
+
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                /*
+            Bytecode of main:
+                [0] invokestatic #7 = Methodref(A.callee()V)
+                [3] getstatic #12 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [6] invokestatic #16 = Methodref(A.sink(Ljava/lang/String;)V)
+                [9] return
+
+            Bytecode of callee:
+                [0] invokestatic #20 = Methodref(A.source1()Ljava/lang/String;)
+                [3] putstatic #12 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [6] return
+             */
+
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:6",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main()V:3",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;callee()V:6",
+                        "JvmStackLocation(0)@LA;callee()V:3",
+                    ),
+                )
+            }
+        }
+    }
+
+    Given("A main method calling a library method between a source method call and a sink call, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -400,25 +601,30 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:11",
-                "JvmLocalVariableLocation(1)@LA;main()V:10",
-                "JvmLocalVariableLocation(1)@LA;main()V:7",
-                "JvmLocalVariableLocation(1)@LA;main()V:4",
-                "JvmStackLocation(0)@LA;main()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:11",
+                        "JvmLocalVariableLocation(1)@LA;main()V:10",
+                        "JvmLocalVariableLocation(1)@LA;main()V:7",
+                        "JvmLocalVariableLocation(1)@LA;main()V:4",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Intermediate program calls don't disrupt the trace" {
+    Given("A main method calling an intermediate method between a source method call and a sink call, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -454,24 +660,29 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:8",
-                "JvmLocalVariableLocation(1)@LA;main()V:7",
-                "JvmLocalVariableLocation(1)@LA;main()V:4",
-                "JvmStackLocation(0)@LA;main()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:8",
+                        "JvmLocalVariableLocation(1)@LA;main()V:7",
+                        "JvmLocalVariableLocation(1)@LA;main()V:4",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Intermediate local variable updates don't disrupt the trace" {
+    Given("A main method assigning null to an unused local between a source method call and a sink call, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -504,25 +715,30 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:7",
-                "JvmLocalVariableLocation(1)@LA;main()V:6",
-                "JvmLocalVariableLocation(1)@LA;main()V:5",
-                "JvmLocalVariableLocation(1)@LA;main()V:4",
-                "JvmStackLocation(0)@LA;main()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:7",
+                        "JvmLocalVariableLocation(1)@LA;main()V:6",
+                        "JvmLocalVariableLocation(1)@LA;main()V:5",
+                        "JvmLocalVariableLocation(1)@LA;main()V:4",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Category 2 sink arguments are supported" {
+    Given("A main method passing a source method result length to a sink, a returning source, and a long argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -553,25 +769,30 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentLong))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentLong))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:9",
-                "JvmStackLocation(0)@LA;main()V:8",
-                "JvmStackLocation(0)@LA;main()V:5",
-                "JvmLocalVariableLocation(1)@LA;main()V:4",
-                "JvmStackLocation(0)@LA;main()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:9",
+                        "JvmStackLocation(0)@LA;main()V:8",
+                        "JvmStackLocation(0)@LA;main()V:5",
+                        "JvmLocalVariableLocation(1)@LA;main()V:4",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Sink argument position is calculated correctly" {
+    Given("A main method passing a source method result as the second argument of a two-argument sink, a returning source, and a two-argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -602,24 +823,29 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentMultiple))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentMultiple))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:6",
-                "JvmLocalVariableLocation(1)@LA;main()V:5",
-                "JvmLocalVariableLocation(1)@LA;main()V:4",
-                "JvmStackLocation(0)@LA;main()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:6",
+                        "JvmLocalVariableLocation(1)@LA;main()V:5",
+                        "JvmLocalVariableLocation(1)@LA;main()V:4",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "The ternary operator is supported" {
+    Given("A main method passing a ternary between two callees calling a source method to a sink, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -659,39 +885,44 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        /*
-    Bytecode of main:
-        [0] iload_1 v1
-        [1] ifeq +9 (target=10)
-        [4] invokestatic #2 = Methodref(A.getSource1()Ljava/lang/String;)
-        [7] goto +6 (target=13)
-        [10] invokestatic #3 = Methodref(A.getSource2()Ljava/lang/String;)
-        [13] invokestatic #4 = Methodref(A.sink(Ljava/lang/String;)V)
-        [16] return
-     */
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main(Z)V:13",
-                "JvmStackLocation(0)@LA;getSource2()Ljava/lang/String;:3",
-            ),
-            listOf(
-                "JvmStackLocation(0)@LA;main(Z)V:13",
-                "JvmStackLocation(0)@LA;main(Z)V:7",
-                "JvmStackLocation(0)@LA;getSource1()Ljava/lang/String;:3",
-            ),
-        )
+                /*
+            Bytecode of main:
+                [0] iload_1 v1
+                [1] ifeq +9 (target=10)
+                [4] invokestatic #2 = Methodref(A.getSource1()Ljava/lang/String;)
+                [7] goto +6 (target=13)
+                [10] invokestatic #3 = Methodref(A.getSource2()Ljava/lang/String;)
+                [13] invokestatic #4 = Methodref(A.sink(Ljava/lang/String;)V)
+                [16] return
+             */
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main(Z)V:13",
+                        "JvmStackLocation(0)@LA;getSource2()Ljava/lang/String;:3",
+                    ),
+                    listOf(
+                        "JvmStackLocation(0)@LA;main(Z)V:13",
+                        "JvmStackLocation(0)@LA;main(Z)V:7",
+                        "JvmStackLocation(0)@LA;getSource1()Ljava/lang/String;:3",
+                    ),
+                )
+            }
+        }
     }
 
     // with the current version of JvmMemoryLocationTransferRelation exception paths are not supported yet
-    "Exception paths are supported".config(enabled = false) {
+    Given("A main method assigning null to a local in a try block with a throwing callee before passing it to a sink, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -736,25 +967,30 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:14",
-                "JvmLocalVariableLocation(1)@LA;main()V:13",
-                "JvmLocalVariableLocation(1)@LA;main()V:12",
-                "JvmLocalVariableLocation(1)@LA;main()V:4",
-                "JvmStackLocation(0)@LA;main()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed").config(enabled = false) {
+                val traces = result.extractLinearTraces()
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:14",
+                        "JvmLocalVariableLocation(1)@LA;main()V:13",
+                        "JvmLocalVariableLocation(1)@LA;main()V:12",
+                        "JvmLocalVariableLocation(1)@LA;main()V:4",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "The trace does not go beyond the trace origin" {
+    Given("A main method passing a callee's source method result to a sink and discarding another source result in an unused local, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -790,22 +1026,27 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:10",
-                "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)Ljava/lang/String;:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:10",
+                        "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)Ljava/lang/String;:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "The trace does not go through discarded abstract states" {
+    Given("A main method passing a ternary between two locals assigned from source method calls to a sink, two returning sources, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -842,53 +1083,58 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(
-            interproceduralCfa,
-            setOf(taintSourceReturn1, taintSourceReturn2),
-            setOf(taintSinkArgument),
-        )
-            .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer = TaintAnalyzer.Builder(
+                interproceduralCfa,
+                setOf(taintSourceReturn1, taintSourceReturn2),
+                setOf(taintSinkArgument),
+            )
+                .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        /*
-    Bytecode of main:
-        [0] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-        [3] astore_2 v2
-        [4] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-        [7] astore_3 v3
-        [8] iload_1 v1
-        [9] ifeq +7 (target=16)
-        [12] aload_2 v2
-        [13] goto +4 (target=17)
-        [16] aload_3 v3
-        [17] invokestatic #3 = Methodref(A.sink(Ljava/lang/String;)V)
-        [20] return
-    */
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main(Z)V:17",
-                "JvmLocalVariableLocation(3)@LA;main(Z)V:16",
-                "JvmLocalVariableLocation(3)@LA;main(Z)V:9",
-                "JvmLocalVariableLocation(3)@LA;main(Z)V:8",
-                "JvmStackLocation(0)@LA;main(Z)V:7",
-            ),
-            listOf(
-                "JvmStackLocation(0)@LA;main(Z)V:17",
-                "JvmStackLocation(0)@LA;main(Z)V:13",
-                "JvmLocalVariableLocation(2)@LA;main(Z)V:12",
-                "JvmLocalVariableLocation(2)@LA;main(Z)V:9",
-                "JvmLocalVariableLocation(2)@LA;main(Z)V:8",
-                "JvmLocalVariableLocation(2)@LA;main(Z)V:7",
-                "JvmLocalVariableLocation(2)@LA;main(Z)V:4",
-                "JvmStackLocation(0)@LA;main(Z)V:3",
-            ),
-        )
+                /*
+            Bytecode of main:
+                [0] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+                [3] astore_2 v2
+                [4] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+                [7] astore_3 v3
+                [8] iload_1 v1
+                [9] ifeq +7 (target=16)
+                [12] aload_2 v2
+                [13] goto +4 (target=17)
+                [16] aload_3 v3
+                [17] invokestatic #3 = Methodref(A.sink(Ljava/lang/String;)V)
+                [20] return
+            */
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main(Z)V:17",
+                        "JvmLocalVariableLocation(3)@LA;main(Z)V:16",
+                        "JvmLocalVariableLocation(3)@LA;main(Z)V:9",
+                        "JvmLocalVariableLocation(3)@LA;main(Z)V:8",
+                        "JvmStackLocation(0)@LA;main(Z)V:7",
+                    ),
+                    listOf(
+                        "JvmStackLocation(0)@LA;main(Z)V:17",
+                        "JvmStackLocation(0)@LA;main(Z)V:13",
+                        "JvmLocalVariableLocation(2)@LA;main(Z)V:12",
+                        "JvmLocalVariableLocation(2)@LA;main(Z)V:9",
+                        "JvmLocalVariableLocation(2)@LA;main(Z)V:8",
+                        "JvmLocalVariableLocation(2)@LA;main(Z)V:7",
+                        "JvmLocalVariableLocation(2)@LA;main(Z)V:4",
+                        "JvmStackLocation(0)@LA;main(Z)V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Return state less or equal than the post call site is supported" {
+    Given("A main method conditionally writing a static field with a source method result or through a callee and passing it to a sink, two returning sources, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -896,25 +1142,25 @@ class TraceExtractorTest : StringSpec({
                     """
                     class A {
                     
-                        public static String s;
+                        public static String staticSourceField;
 
                         public void main(boolean b) {
                             
                             if (b)
                             {
-                                s = source1();
+                                staticSourceField = source1();
                             }
                             else 
                             {
                                 callee();
                             }
                             
-                            sink(s);
+                            sink(staticSourceField);
                         }
                     
                         public static void callee()
                         {
-                            s = source2();
+                            staticSourceField = source2();
                         }
                     
                         public static void sink(String s)
@@ -940,51 +1186,56 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(
-            interproceduralCfa,
-            setOf(taintSourceReturn1, taintSourceReturn2),
-            setOf(taintSinkArgument),
-        )
-            .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer = TaintAnalyzer.Builder(
+                interproceduralCfa,
+                setOf(taintSourceReturn1, taintSourceReturn2),
+                setOf(taintSinkArgument),
+            )
+                .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        /*
-    Bytecode of main:
-        [0] iload_1 v1
-        [1] ifeq +12 (target=13)
-        [4] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-        [7] putstatic #3 = Fieldref(A.s Ljava/lang/String;)
-        [10] goto +6 (target=16)
-        [13] invokestatic #4 = Methodref(A.callee()V)
-        [16] getstatic #3 = Fieldref(A.s Ljava/lang/String;)
-        [19] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
-        [22] return
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
 
-    Bytecode of callee:
-        [0] invokestatic #6 = Methodref(A.source2()Ljava/lang/String;)
-        [3] putstatic #3 = Fieldref(A.s Ljava/lang/String;)
-        [6] return
-    */
+                /*
+            Bytecode of main:
+                [0] iload_1 v1
+                [1] ifeq +12 (target=13)
+                [4] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+                [7] putstatic #3 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [10] goto +6 (target=16)
+                [13] invokestatic #4 = Methodref(A.callee()V)
+                [16] getstatic #3 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [19] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
+                [22] return
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main(Z)V:19",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:16",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:10",
-                "JvmStackLocation(0)@LA;main(Z)V:7",
-            ),
-            listOf(
-                "JvmStackLocation(0)@LA;main(Z)V:19",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:16",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
-                "JvmStackLocation(0)@LA;callee()V:3",
-            ),
-        )
+            Bytecode of callee:
+                [0] invokestatic #6 = Methodref(A.source2()Ljava/lang/String;)
+                [3] putstatic #3 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [6] return
+            */
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main(Z)V:19",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main(Z)V:16",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main(Z)V:10",
+                        "JvmStackLocation(0)@LA;main(Z)V:7",
+                    ),
+                    listOf(
+                        "JvmStackLocation(0)@LA;main(Z)V:19",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main(Z)V:16",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;callee()V:6",
+                        "JvmStackLocation(0)@LA;callee()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Correct trace for recursion".config(enabled = false) {
+    Given("A main method passing the result of a recursive callee taking two source method results to a sink, two returning sources, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -1025,56 +1276,61 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(
-            interproceduralCfa,
-            setOf(taintSourceReturn1, taintSourceReturn2),
-            setOf(taintSinkArgument),
-        )
-            .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer = TaintAnalyzer.Builder(
+                interproceduralCfa,
+                setOf(taintSourceReturn1, taintSourceReturn2),
+                setOf(taintSinkArgument),
+            )
+                .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        /*
-    Bytecode of main:
-        [0] aload_0 v0
-        [1] iload_1 v1
-        [2] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-        [5] invokestatic #3 = Methodref(A.source2()Ljava/lang/String;)
-        [8] invokevirtual #4 = Methodref(A.callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;)
-        [11] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
-        [14] return
+            Then("The expected traces are reconstructed").config(enabled = false) {
+                val traces = result.extractLinearTraces()
 
-    Bytecode of callee:
-        [0] iload_1 v1
-        [1] ifeq +21 (target=22)
-        [4] aload_0 v0
-        [5] iload_1 v1
-        [6] ifne +7 (target=13)
-        [9] iconst_1
-        [10] goto +4 (target=14)
-        [13] iconst_0
-        [14] aload_2 v2
-        [15] aload_3 v3
-        [16] invokevirtual #4 = Methodref(A.callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;)
-        [19] goto +4 (target=23)
-        [22] aload_2 v2
-        [23] areturn
-     */
+                /*
+            Bytecode of main:
+                [0] aload_0 v0
+                [1] iload_1 v1
+                [2] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+                [5] invokestatic #3 = Methodref(A.source2()Ljava/lang/String;)
+                [8] invokevirtual #4 = Methodref(A.callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;)
+                [11] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
+                [14] return
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main(Z)V:11",
-                "JvmStackLocation(0)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:23",
-                "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:22",
-                "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:11",
-                "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:0",
-                "JvmStackLocation(1)@LA;main(Z)V:8, JvmStackLocation(0)@LA;main(Z)V:5",
-            ),
-        )
+            Bytecode of callee:
+                [0] iload_1 v1
+                [1] ifeq +21 (target=22)
+                [4] aload_0 v0
+                [5] iload_1 v1
+                [6] ifne +7 (target=13)
+                [9] iconst_1
+                [10] goto +4 (target=14)
+                [13] iconst_0
+                [14] aload_2 v2
+                [15] aload_3 v3
+                [16] invokevirtual #4 = Methodref(A.callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;)
+                [19] goto +4 (target=23)
+                [22] aload_2 v2
+                [23] areturn
+             */
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main(Z)V:11",
+                        "JvmStackLocation(0)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:23",
+                        "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:22",
+                        "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:11",
+                        "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:0",
+                        "JvmStackLocation(1)@LA;main(Z)V:8, JvmStackLocation(0)@LA;main(Z)V:5",
+                    ),
+                )
+            }
+        }
     }
 
-    "Regression test: loading a different static field does not break the trace" {
+    Given("A main method writing an unrelated static field between a callee writing a source method result to the field and passing the field to a sink, a returning source, and an argument sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -1082,18 +1338,18 @@ class TraceExtractorTest : StringSpec({
                     """
                     class A {
 
-                        public static String s;
+                        public static String staticSourceField;
                         public static String s1;
                     
                         public void main() {
                             callee();
                             s1 = "42";
-                            sink(s);
+                            sink(staticSourceField);
                         }
                     
                         public static void callee()
                         {
-                            s = source1();
+                            staticSourceField = source1();
                         }
                     
                         public static void sink(String s)
@@ -1115,36 +1371,41 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        /*
-    Bytecode of main:
-        [0] invokestatic #2 = Methodref(A.callee()V)
-        [3] ldc #3 = String("42")
-        [5] putstatic #4 = Fieldref(A.s1 Ljava/lang/String;)
-        [8] getstatic #7 = Fieldref(A.s Ljava/lang/String;)
-        [11] invokestatic #8 = Methodref(A.sink(Ljava/lang/String;)V)
-        [14] return
-     */
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
 
-        traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;main()V:11",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:8",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:5",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
-                "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
-                "JvmStackLocation(0)@LA;callee()V:3",
-            ),
-        )
+                /*
+            Bytecode of main:
+                [0] invokestatic #2 = Methodref(A.callee()V)
+                [3] ldc #3 = String("42")
+                [5] putstatic #4 = Fieldref(A.s1 Ljava/lang/String;)
+                [8] getstatic #7 = Fieldref(A.staticSourceField Ljava/lang/String;)
+                [11] invokestatic #8 = Methodref(A.sink(Ljava/lang/String;)V)
+                [14] return
+             */
+
+                traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;main()V:11",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main()V:8",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main()V:5",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;main()V:3",
+                        "JvmStaticFieldLocation(A.staticSourceField:Ljava/lang/String;)@LA;callee()V:6",
+                        "JvmStackLocation(0)@LA;callee()V:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Simple interprocedural flows with return sink are reconstructed" {
+    Given("A main method passing a callee's source method result to a sink returning its argument, a returning source, and a return sink") {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -1195,23 +1456,28 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkReturn))
-            .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkReturn))
+                .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;sink(Ljava/lang/String;)Ljava/lang/String;:1",
-                "JvmLocalVariableLocation(0)@LA;sink(Ljava/lang/String;)Ljava/lang/String;:0",
-                "JvmStackLocation(0)@LA;main()V:3",
-                "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;sink(Ljava/lang/String;)Ljava/lang/String;:1",
+                        "JvmLocalVariableLocation(0)@LA;sink(Ljava/lang/String;)Ljava/lang/String;:0",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                        "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3",
+                    ),
+                )
+            }
+        }
     }
 
-    "Simple interprocedural flows with doubles and return sink are reconstructed" {
+    Given("A main method passing a source method result through a callee to a sink, a returning double source, and a double argument sink") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
@@ -1261,19 +1527,24 @@ class TraceExtractorTest : StringSpec({
             interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
                 .get().signature
 
-        val taintAnalyzer =
-            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturnDouble), setOf(taintSinkArgumentDouble))
-                .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
-        interproceduralCfa.clear()
-        val traces = result.extractLinearTraces()
+        When("TaintAnalyzer analyzes taints and reconstructs traces") {
+            val taintAnalyzer =
+                TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturnDouble), setOf(taintSinkArgumentDouble))
+                    .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-            listOf(
-                "JvmStackLocation(0)@LA;foo(D)V:1",
-                "JvmLocalVariableLocation(0)@LA;foo(D)V:0",
-                "JvmStackLocation(0)@LA;main()V:3",
-            ),
-        )
+            Then("The expected traces are reconstructed") {
+                val traces = result.extractLinearTraces()
+
+                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                    listOf(
+                        "JvmStackLocation(0)@LA;foo(D)V:1",
+                        "JvmLocalVariableLocation(0)@LA;foo(D)V:0",
+                        "JvmStackLocation(0)@LA;main()V:3",
+                    ),
+                )
+            }
+        }
     }
 })
