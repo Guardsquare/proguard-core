@@ -3,6 +3,7 @@
 ### Improved
 
 - Greatly improved performance for generalization of deeply nested CompositeIntegerValues.
+- Improved performance for `InitializedClassUtil.isInstanceOf`.
 
 ### API improvements
 
