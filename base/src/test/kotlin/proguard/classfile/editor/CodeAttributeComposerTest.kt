@@ -83,4 +83,66 @@ class CodeAttributeComposerTest : FunSpec({
             },
         )
     }
+
+    test("The computed maximum stack size accounts for widened branch instructions") {
+        val programClass =
+            ProgramClass(
+                VersionConstants.CLASS_VERSION_1_8,
+                1,
+                arrayOfNulls(10),
+                AccessConstants.PUBLIC,
+                0,
+                0,
+            )
+        val constantPoolEditor = ConstantPoolEditor(programClass)
+        val programMethod =
+            ProgramMethod(
+                AccessConstants.PUBLIC,
+                constantPoolEditor.addUtf8Constant("foo"),
+                constantPoolEditor.addUtf8Constant("()V"),
+                null,
+            )
+
+        val composer =
+            CompactCodeAttributeComposer(
+                constantPoolEditor,
+                CodeAttributeComposer(false, true, true),
+            )
+        composer.beginCodeFragment(40000)
+
+        val farBlock = composer.createLabel()
+        val end = composer.createLabel()
+
+        // A block that only reaches the far block through a conditional branch whose
+        // remapped distance requires widening.
+        composer.iconst_0()
+        composer.ifeq(farBlock)
+        composer.return_()
+        // Filler to push the far block beyond the reach of a short branch.
+        repeat(32770) { composer.nop() }
+        // The far block pushes two values onto the stack.
+        composer.label(farBlock)
+        composer.iconst_0()
+        composer.iconst_0()
+        composer.goto_(end)
+        composer.label(end)
+        composer.return_()
+
+        composer.endCodeFragment()
+        composer.addCodeAttribute(programClass, programMethod)
+
+        programMethod.attributesAccept(
+            programClass,
+            object : AttributeVisitor {
+                override fun visitAnyAttribute(clazz: Clazz?, attribute: Attribute?) {
+                }
+
+                override fun visitCodeAttribute(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?) {
+                    // The widened branch makes the far block reachable, which needs a
+                    // stack size of 2.
+                    codeAttribute!!.u2maxStack shouldBe 2
+                }
+            },
+        )
+    }
 })
