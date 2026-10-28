@@ -638,10 +638,6 @@ public class CodeAttributeComposer
     codeAttribute.u2exceptionTableLength = exceptionTableLength;
     System.arraycopy(exceptionTable, 0, codeAttribute.exceptionTable, 0, exceptionTableLength);
 
-    // Update the maximum stack size and local variable frame size.
-    stackSizeUpdater.visitCodeAttribute(clazz, method, codeAttribute);
-    variableSizeUpdater.visitCodeAttribute(clazz, method, codeAttribute);
-
     // Add a new line number table for the line numbers, if necessary.
     if (lineNumberTableLength > 0
         && codeAttribute.getAttribute(clazz, Attribute.LINE_NUMBER_TABLE) == null) {
@@ -673,6 +669,12 @@ public class CodeAttributeComposer
 
     // Make sure instructions are widened if necessary.
     instructionWriter.visitCodeAttribute(clazz, method, codeAttribute);
+
+    // Update the maximum stack size and local variable frame size, after
+    // widening the instructions, since widening may make additional code
+    // reachable and change the required stack size.
+    stackSizeUpdater.visitCodeAttribute(clazz, method, codeAttribute);
+    variableSizeUpdater.visitCodeAttribute(clazz, method, codeAttribute);
 
     level--;
 
