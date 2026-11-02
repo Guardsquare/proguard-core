@@ -1,3 +1,9 @@
+## Version 9.4.2
+
+### Bugfixes
+
+- Fix `NullPointerException` in `ClassReferenceFixer` when a Kotlin metadata reference left unresolved by an incomplete class pool is dereferenced.
+
 ## Version 9.4.1
 
 ### Improved
