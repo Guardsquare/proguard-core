@@ -600,9 +600,6 @@ public class ClassReferenceFixer
                 kotlinClassKindMetadata.referencedCompanionClass);
       }
 
-      kotlinClassKindMetadata.enumEntries.forEach(
-          enumEntry -> enumEntry.name = enumEntry.referencedEnumEntry.getName(clazz));
-
       for (int k = 0; k < kotlinClassKindMetadata.nestedClassNames.size(); k++) {
         kotlinClassKindMetadata.nestedClassNames.set(
             k,
@@ -620,6 +617,7 @@ public class ClassReferenceFixer
                 kotlinClassKindMetadata.referencedSealedSubClasses.get(k)));
       }
 
+      kotlinClassKindMetadata.enumEntriesAccept(clazz, this);
       kotlinClassKindMetadata.typeParametersAccept(clazz, this);
       kotlinClassKindMetadata.contextReceiverTypesAccept(clazz, this);
       kotlinClassKindMetadata.superTypesAccept(clazz, this);
@@ -676,8 +674,10 @@ public class ClassReferenceFixer
       if (kotlinPropertyMetadata.backingFieldSignature != null) {
         Clazz backingFieldClass = kotlinPropertyMetadata.referencedBackingFieldClass;
         Field backingField = kotlinPropertyMetadata.referencedBackingField;
-        kotlinPropertyMetadata.backingFieldSignature =
-            new FieldSignature(backingFieldClass, backingField);
+        if (backingFieldClass != null && backingField != null) {
+          kotlinPropertyMetadata.backingFieldSignature =
+              new FieldSignature(backingFieldClass, backingField);
+        }
       }
 
       kotlinPropertyMetadata.getterMetadata.signature =
@@ -737,7 +737,9 @@ public class ClassReferenceFixer
       if (kotlinFunctionMetadata.jvmSignature != null) {
         Clazz jvmClass = kotlinFunctionMetadata.referencedMethodClass;
         Method jvmMethod = kotlinFunctionMetadata.referencedMethod;
-        kotlinFunctionMetadata.jvmSignature = new MethodSignature(jvmClass, jvmMethod);
+        if (jvmClass != null && jvmMethod != null) {
+          kotlinFunctionMetadata.jvmSignature = new MethodSignature(jvmClass, jvmMethod);
+        }
       }
 
       kotlinFunctionMetadata.typeParametersAccept(clazz, kotlinMetadata, this);
@@ -749,14 +751,16 @@ public class ClassReferenceFixer
       kotlinFunctionMetadata.contractsAccept(clazz, kotlinMetadata, new AllTypeVisitor(this));
       kotlinFunctionMetadata.annotationsAccept(clazz, this);
 
-      String newFunctionName =
-          newKotlinFunctionName(
-              kotlinFunctionMetadata.name,
-              kotlinFunctionMetadata.referencedMethod.getName(
-                  kotlinFunctionMetadata.referencedMethodClass));
+      Clazz referencedMethodClass = kotlinFunctionMetadata.referencedMethodClass;
+      Method referencedMethod = kotlinFunctionMetadata.referencedMethod;
+      if (referencedMethodClass != null && referencedMethod != null) {
+        String newFunctionName =
+            newKotlinFunctionName(
+                kotlinFunctionMetadata.name, referencedMethod.getName(referencedMethodClass));
 
-      if (!kotlinFunctionMetadata.name.equals(newFunctionName)) {
-        kotlinFunctionMetadata.name = newFunctionName;
+        if (!kotlinFunctionMetadata.name.equals(newFunctionName)) {
+          kotlinFunctionMetadata.name = newFunctionName;
+        }
       }
     }
 
@@ -769,7 +773,9 @@ public class ClassReferenceFixer
         KotlinConstructorMetadata kotlinConstructorMetadata) {
       if (kotlinConstructorMetadata.jvmSignature != null) {
         Method jvmMethod = kotlinConstructorMetadata.referencedMethod;
-        kotlinConstructorMetadata.jvmSignature = new MethodSignature(clazz, jvmMethod);
+        if (jvmMethod != null) {
+          kotlinConstructorMetadata.jvmSignature = new MethodSignature(clazz, jvmMethod);
+        }
       }
 
       kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, this);
@@ -780,7 +786,7 @@ public class ClassReferenceFixer
 
     @Override
     public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata) {
-      if (kotlinTypeMetadata.className != null) {
+      if (kotlinTypeMetadata.className != null && kotlinTypeMetadata.referencedClass != null) {
         kotlinTypeMetadata.className = kotlinTypeMetadata.referencedClass.getName();
       }
 
@@ -877,11 +883,16 @@ public class ClassReferenceFixer
       kotlinTypeParameterMetadata.annotationsAccept(clazz, this);
     }
 
+    // Implementations for KotlinEnumEntryVisitor.
+
     @Override
     public void visitAnyEnumEntry(
         Clazz clazz,
         KotlinClassKindMetadata kotlinClassKindMetadata,
         KotlinEnumEntryMetadata kotlinEnumEntryMetadata) {
+      if (kotlinEnumEntryMetadata.referencedEnumEntry != null) {
+        kotlinEnumEntryMetadata.name = kotlinEnumEntryMetadata.referencedEnumEntry.getName(clazz);
+      }
       kotlinEnumEntryMetadata.annotationsAccept(clazz, this);
     }
 
@@ -915,8 +926,11 @@ public class ClassReferenceFixer
         KotlinAnnotation annotation,
         KotlinAnnotationArgument argument,
         Value value) {
-      argument.name =
-          argument.referencedAnnotationMethod.getName(argument.referencedAnnotationMethodClass);
+      if (argument.referencedAnnotationMethod != null
+          && argument.referencedAnnotationMethodClass != null) {
+        argument.name =
+            argument.referencedAnnotationMethod.getName(argument.referencedAnnotationMethodClass);
+      }
     }
 
     @Override
@@ -928,7 +942,9 @@ public class ClassReferenceFixer
         KotlinAnnotationArgument.ClassValue value) {
       this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
 
-      value.className = value.referencedClass.getName();
+      if (value.referencedClass != null) {
+        value.className = value.referencedClass.getName();
+      }
     }
 
     @Override
@@ -940,7 +956,9 @@ public class ClassReferenceFixer
         KotlinAnnotationArgument.EnumValue value) {
       this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
 
-      value.className = value.referencedClass.getName();
+      if (value.referencedClass != null) {
+        value.className = value.referencedClass.getName();
+      }
     }
   }
 
@@ -1134,6 +1152,12 @@ public class ClassReferenceFixer
       MethodSignature oldSignature) {
     if (oldSignature == null) {
       return null;
+    }
+
+    // If the referenced method didn't resolve (e.g. an incomplete class pool), leave the existing
+    // signature as-is rather than dereferencing a null reference.
+    if (referencedMethodClass == null || referencedMethod == null) {
+      return oldSignature;
     }
 
     MethodSignature newSignature = new MethodSignature(referencedMethodClass, referencedMethod);
