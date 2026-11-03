@@ -104,7 +104,7 @@ public class CallGraph {
   }
 
   /**
-   * See {@link #reconstructCallGraph(ClassPool, MethodSignature, int, int, Set)}
+   * See {@link #reconstructCallGraph(ClassPool, MethodSignature, int, Set)}
    *
    * @param programClassPool The current {@link ClassPool} of the program that can be used for
    *     mapping. class names to the actual {@link Clazz}.
@@ -116,7 +116,7 @@ public class CallGraph {
   public Node reconstructCallGraph(
       ClassPool programClassPool, MethodSignature start, Set<MethodSignature> stopMethods) {
     return CallGraphWalker.predecessorPathsAccept(
-        this, start, n -> handleUntil(programClassPool, n, stopMethods, null));
+        this, start, n -> handleUntil(programClassPool, n, stopMethods, null), -1);
   }
 
   /**
@@ -141,21 +141,17 @@ public class CallGraph {
    *     mapping. class names to the actual {@link Clazz}.
    * @param start The {@link MethodSignature} of the method whose incoming call graph should be
    *     calculated.
-   * @param maxDepth maximal depth of reconstructed {@link CallGraph} similar to {@link
-   *     CallGraphWalker#MAX_DEPTH_DEFAULT}.
-   * @param maxWidth maximal width of reconstructed {@link CallGraph} similar to {@link
-   *     CallGraphWalker#MAX_WIDTH_DEFAULT}.
-   * @param stopMethods Set of method signatures to stop exploration, for example for entry points
+   * @param maxDepth maximal depth of reconstructed {@link CallGraph}.
+   * @param stopMethods Set of method signatures to stop exploration, for example for entry points.
    * @return A {@link Node} that represents the single call graph root, i.e. the start method.
    */
   public Node reconstructCallGraph(
       ClassPool programClassPool,
       MethodSignature start,
       int maxDepth,
-      int maxWidth,
       Set<MethodSignature> stopMethods) {
     return CallGraphWalker.predecessorPathsAccept(
-        this, start, n -> handleUntil(programClassPool, n, stopMethods, null), maxDepth, maxWidth);
+        this, start, n -> handleUntil(programClassPool, n, stopMethods, null), maxDepth);
   }
 
   /**
@@ -166,7 +162,7 @@ public class CallGraph {
    *     mapping.
    * @param start The {@link MethodSignature} of the method whose incoming call graph should be
    *     calculated.
-   * @param stopMethods A set of {@link MethodSignature} to stop exploration, e.g. app entry points
+   * @param stopMethods A set of {@link MethodSignature} to stop exploration, e.g. app entry points.
    * @param reachedMethods A set that will be filled with all reached stop methods
    * @return A {@link Node} that represents the single call graph root, i.e. the start method.
    */
@@ -176,13 +172,13 @@ public class CallGraph {
       Set<MethodSignature> stopMethods,
       Set<MethodSignature> reachedMethods) {
     return CallGraphWalker.predecessorPathsAccept(
-        this, start, n -> handleUntil(programClassPool, n, stopMethods, reachedMethods));
+        this, start, n -> handleUntil(programClassPool, n, stopMethods, reachedMethods), -1);
   }
 
   /**
    * Handler implementation for {@link CallGraphWalker#predecessorPathsAccept(CallGraph,
-   * MethodSignature, Predicate)} that checks if one of a given set of stop methods has been reached
-   * along the call graph paths.
+   * MethodSignature, Predicate, int)} that checks if one of a given set of stop methods has been
+   * reached along the call graph paths.
    *
    * @param programClassPool The current {@link ClassPool} of the program that can be used for
    *     mapping class names to the actual {@link Clazz}.

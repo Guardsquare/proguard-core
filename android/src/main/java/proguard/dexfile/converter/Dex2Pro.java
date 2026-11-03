@@ -140,6 +140,12 @@ public class Dex2Pro {
   // Used when multithreaded mode is enabled
   private final ExecutorService executor;
 
+  /**
+   * Monitor used to serialize the converted classes to the visitor. Only used if multithreading is
+   * enabled.
+   */
+  private final Object visitorLock = new Object();
+
   /** Create a new (single-threaded) {@link Dex2Pro} object. */
   public Dex2Pro() {
     this.executor = null;
@@ -595,8 +601,9 @@ public class Dex2Pro {
     // process them directly on the main thread, to save time on spin-up overhead etc.
     Map<String, Clz> classInfo = Collections.unmodifiableMap(collectClzInfo(fileNode));
     if (executor != null) {
-      // Wrap the visitor in a synchronized helper class
-      ClassVisitor syncVisitor = new SynchronizedClassVisitor(classVisitor);
+      // Wrap the visitor in a synchronized helper class using a lock shared by all files of this
+      // instance.
+      ClassVisitor syncVisitor = new SynchronizedClassVisitor(visitorLock, classVisitor);
       fileNode.clzs.stream()
           .map(classNode -> new WorkItem(classInfo, fileNode, classNode, syncVisitor))
           .forEach(executor::execute);
@@ -798,7 +805,8 @@ public class Dex2Pro {
       }
     }
 
-    // Let the class visitor visit the created class.
+    // Let the class visitor visit the created class. The SynchronizedClassVisitor wrapping
+    // it serializes this hand-off against all other files of this Dex2Pro instance.
     classVisitor.visitProgramClass(programClass);
   }
 
@@ -1297,28 +1305,39 @@ public class Dex2Pro {
     }
   }
 
-  /** Basic helper class that allows concurrent use of a given delegate {@link ClassVisitor}. */
+  /**
+   * Basic helper class that allows concurrent use of a given delegate {@link ClassVisitor},
+   * serializing all visitor invocations on a given lock.
+   */
   private static class SynchronizedClassVisitor implements ClassVisitor {
 
+    private final Object lock;
     private final ClassVisitor delegate;
 
-    private SynchronizedClassVisitor(ClassVisitor delegate) {
+    private SynchronizedClassVisitor(Object lock, ClassVisitor delegate) {
+      this.lock = lock;
       this.delegate = delegate;
     }
 
     @Override
-    public synchronized void visitAnyClass(Clazz clazz) {
-      delegate.visitAnyClass(clazz);
+    public void visitAnyClass(Clazz clazz) {
+      synchronized (lock) {
+        delegate.visitAnyClass(clazz);
+      }
     }
 
     @Override
-    public synchronized void visitProgramClass(ProgramClass programClass) {
-      delegate.visitProgramClass(programClass);
+    public void visitProgramClass(ProgramClass programClass) {
+      synchronized (lock) {
+        delegate.visitProgramClass(programClass);
+      }
     }
 
     @Override
-    public synchronized void visitLibraryClass(LibraryClass libraryClass) {
-      delegate.visitLibraryClass(libraryClass);
+    public void visitLibraryClass(LibraryClass libraryClass) {
+      synchronized (lock) {
+        delegate.visitLibraryClass(libraryClass);
+      }
     }
   }
 }

@@ -1,8 +1,8 @@
 plugins {
+	id 'proguardcore.conventions'
 	id 'application'
 	id 'maven-publish'
 	id 'signing'
-	alias(libs.plugins.kotlin.plugin)
 }
 
 dependencies {

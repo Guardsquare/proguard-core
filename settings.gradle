@@ -1,8 +1,18 @@
 plugins {
-	id 'org.gradle.toolchains.foojay-resolver-convention' version '0.9.0'
+	id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+dependencyResolutionManagement {
+	repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+	repositories {
+		mavenCentral()
+		google()
+	}
 }
 
 rootProject.name = 'proguard-core-root'
+
+includeBuild('build-logic')
 
 include('base')
 include('android')
@@ -14,3 +24,8 @@ project(':base').name = "proguard-core"
 project(':android').name = 'proguard-core-android'
 project(':examples').name = 'proguard-core-examples'
 project(':tools').name = 'proguard-core-tools'
+
+gradle.beforeProject { project ->
+	project.group = 'com.guardsquare'
+	project.version = providers.gradleProperty('proguardCoreVersion').get()
+}

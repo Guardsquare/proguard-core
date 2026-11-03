@@ -696,9 +696,13 @@ public class CodeAttributeEditor
       LineNumberInfo magicLine = table[currentIndex];
 
       // Figure out what line came before the start of this block.
+      // Skip magic lines that are pending deletion: they still hold the magic
+      // value and are removed from the table afterwards, so restoring from
+      // them would leak that value into the line number table.
       int previousIndex = -1;
       for (int i = currentIndex - 1; i >= 0; i--) {
-        if (table[i].getBlockId() != magicLine.getBlockId()) {
+        if (table[i].getBlockId() != magicLine.getBlockId()
+            && table[i].u2lineNumber != RESTORE_PREVIOUS_LINE_NUMBER) {
           previousIndex = i;
           break;
         }

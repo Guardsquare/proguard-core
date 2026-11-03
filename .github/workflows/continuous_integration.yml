@@ -25,7 +25,7 @@ jobs:
         run: ./gradlew javaToolChains spotlessCheck
       - name: Assemble
         run: ./gradlew assemble
-      - name: Build
+      - name: Test
         run: ./gradlew build testAllJavaVersions jacocoTestReport
       - name: Archive Test Results
         uses: actions/upload-artifact@v4

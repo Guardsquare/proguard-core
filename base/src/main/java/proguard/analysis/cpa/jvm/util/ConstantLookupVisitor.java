@@ -19,6 +19,7 @@
 package proguard.analysis.cpa.jvm.util;
 
 import proguard.classfile.Clazz;
+import proguard.classfile.FieldSignature;
 import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.constant.FieldrefConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
@@ -27,17 +28,20 @@ import proguard.classfile.util.ClassUtil;
 /**
  * This {@link ConstantVisitor} is used for field operations and the {@code instanceOf} predicate.
  * The {@link #result} stores the fully qualified name for either a class or a field. The {@link
- * #resultSize} is the size of the referenced type in bytes.
+ * #resultFieldSignature} stores the signature of the referenced field, if the visited constant is a
+ * field reference. The {@link #resultSize} is the size of the referenced type in bytes.
  */
 public class ConstantLookupVisitor implements ConstantVisitor {
   public String result = null;
   public Clazz resultClazz = null;
+  public FieldSignature resultFieldSignature = null;
   public int resultSize = -1;
   public boolean isStatic = false;
 
   public void resetResult() {
     result = null;
     resultClazz = null;
+    resultFieldSignature = null;
     resultSize = -1;
   }
 
@@ -52,6 +56,11 @@ public class ConstantLookupVisitor implements ConstantVisitor {
             + fieldrefConstant.getName(clazz)
             + ":"
             + fieldrefConstant.getType(clazz);
+    resultFieldSignature =
+        new FieldSignature(
+            fieldrefConstant.getClassName(clazz),
+            fieldrefConstant.getName(clazz),
+            fieldrefConstant.getType(clazz));
   }
 
   @Override

@@ -2014,7 +2014,9 @@ public class CompactCodeAttributeComposer implements AttributeVisitor {
    *
    * @param elementTypeOrClassName the array element type (or class name in case of objects).
    * @param size the size of the array to be created.
+   * @deprecated Prefer using the more robust version {{@link #pushArray(String, int)}}
    */
+  @Deprecated
   public CompactCodeAttributeComposer pushNewArray(String elementTypeOrClassName, int size) {
     // Create new array.
     pushInt(size);
@@ -2022,6 +2024,23 @@ public class CompactCodeAttributeComposer implements AttributeVisitor {
     return ClassUtil.isInternalPrimitiveType(elementTypeOrClassName)
         ? newarray(InstructionUtil.arrayTypeFromInternalType(elementTypeOrClassName.charAt(0)))
         : anewarray(elementTypeOrClassName, null);
+  }
+
+  /**
+   * Pushes a new array on the stack.
+   *
+   * <p>Operand stack: ... -> ..., array.
+   *
+   * @param elementInternalType The array element internal type.
+   * @param size The size of the array to be created.
+   */
+  public CompactCodeAttributeComposer pushArray(String elementInternalType, int size) {
+    // Create new array.
+    pushInt(size);
+
+    return ClassUtil.isInternalPrimitiveType(elementInternalType)
+        ? newarray(InstructionUtil.arrayTypeFromInternalType(elementInternalType.charAt(0)))
+        : anewarray(ClassUtil.internalClassTypeFromType(elementInternalType), null);
   }
 
   /**

@@ -1,3 +1,22 @@
+## Version 9.4.1
+
+### Improved
+
+- Greatly improved performance for generalization of deeply nested CompositeIntegerValues.
+- Improved performance for `InitializedClassUtil.isInstanceOf`.
+
+### API improvements
+
+- Add `JvmStaticFieldTaintSource` to specify taint sources for static field reads.
+- `TaintSource` is now an interface, so it can be implemented by taint sources other than methods.
+- `JvmTaintSource` has been renamed to `JvmMethodTaintSource`.
+- The fields of `JvmMethodTaintSource` are now private. Use the `getSignature`, `getTaintsThis`, `getTaintsReturn`, `getTaintArgs`, and `getTaintGlobals` methods instead.
+- Add `JrtDataEntry` and `JrtDataEntrySource`.
+
+### Bugfixes
+
+- Fix concurrent dex conversion through one `Dex2Pro` instance corrupting the class pool.
+
 ## Version 9.4.0
 
 ### Java support 
@@ -21,6 +40,7 @@
 - Add processing flags helper methods to `Processable`.
 - Add `isLeader` and `isFallThrough` methods to the `BranchTargetFinder`. These methods can be used to determine if an offset is the leader of a basic block or the fallthrough of a conditional branch respectively.
 - Deprecate methods of `CallGraphWalker` using a default depth and width.
+- Improve performance of `CallGraphWalker`. This makes exploring the full width of even huge `CallGraph`s possible, removing the need for a maximum width.
 
 ### Improved
 

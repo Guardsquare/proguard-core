@@ -191,6 +191,11 @@ public class LibraryClass extends SimpleFeatureNamedProcessable implements Clazz
         "Library class [" + thisClassName + "] doesn't store constant pool");
   }
 
+  public Clazz getReferencedClass(int constantIndex) {
+    throw new UnsupportedOperationException(
+        "Library class [" + thisClassName + "] doesn't store constant pool");
+  }
+
   public String getName(int constantIndex) {
     throw new UnsupportedOperationException(
         "Library class [" + thisClassName + "] doesn't store constant pool");

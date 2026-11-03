@@ -18,6 +18,7 @@
 package proguard.classfile;
 
 import proguard.classfile.attribute.visitor.AttributeVisitor;
+import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.visitor.ClassVisitor;
@@ -64,6 +65,9 @@ public interface Clazz extends FeatureNamed, Processable {
 
   /** Returns the class name of ClassConstant at the specified index. */
   String getClassName(int constantIndex);
+
+  /** Returns the {@link ClassConstant#referencedClass} at the specified index. */
+  Clazz getReferencedClass(int constantIndex);
 
   /** Returns the name of the NameAndTypeConstant at the specified index. */
   String getName(int constantIndex);

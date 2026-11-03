@@ -1,21 +1,3 @@
-/*
- * ProGuardCORE -- library to process Java bytecode.
- *
- * Copyright (c) 2002-2022 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FunSpec
@@ -23,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.defaults.SetAbstractState
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
+import proguard.analysis.cpa.jvm.domain.taint.JvmMethodTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.jvm.witness.JvmLocalVariableLocation
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation
@@ -34,7 +16,7 @@ import proguard.testutils.ClassPoolBuilder
 
 class JvmTaintPropagationThroughConstructorsTest : FunSpec({
 
-    val taintSource = JvmTaintSource(
+    val taintSource = JvmMethodTaintSource(
         MethodSignature(
             "Test",
             "source",

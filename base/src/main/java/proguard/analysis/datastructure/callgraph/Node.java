@@ -25,21 +25,21 @@ import proguard.classfile.MethodSignature;
 
 /**
  * Represents a node in a sub-callgraph, e.g. only the incoming or the outgoing callgraph for a
- * specific method. See {@link CallGraph#reconstructCallGraph(ClassPool, MethodSignature, Set)} for
- * more details. The reconstruction process makes sure that there are no loops in the graph.
- *
- * @author Samuel Hopstock
+ * specific method. See {@link CallGraph#reconstructCallGraph(ClassPool, MethodSignature, int, Set)}
+ * for more details. The reconstruction process makes sure that there are no loops in the graph.
  */
 public class Node {
 
   public final MethodSignature signature;
   public final Set<Node> predecessors = new HashSet<>();
+
   /**
    * The {@link CodeLocation}s containing the calls in this node's predecessors that lead here. If
    * the call graph is traversed strictly in successor direction, there is exactly one incoming call
    * per node, except for the root, which has none.
    */
   public final Set<CodeLocation> incomingCallLocations = new HashSet<>();
+
   /**
    * The {@link CodeLocation}s containing the calls in this node that lead to its successors. If the
    * call graph is traversed strictly in predecessor direction, there is exactly one outgoing call

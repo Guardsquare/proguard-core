@@ -3,10 +3,6 @@ plugins {
 	id 'application'
 }
 
-repositories {
-	mavenCentral()
-}
-
 dependencies {
 	implementation project(':proguard-core')
 	implementation project(':proguard-core-android')

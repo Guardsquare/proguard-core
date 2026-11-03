@@ -94,6 +94,12 @@ public final class ErrorId {
    */
   public static final int MEMBER_REMOVER_NOT_FINISHED_WITH_CURRENT_CLASS = 13_001;
 
+  /** See {@link proguard.io.JrtDataEntrySource} */
+  public static final int JRT_INVALID_URL = 14_000;
+
+  public static final int JRT_INVALID_MODULE = 14_001;
+  public static final int JRT_FILESYSTEM_ERROR = 14_002;
+
   /** Private constructor to prevent instantiation of the class. */
   private ErrorId() {}
 }

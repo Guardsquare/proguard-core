@@ -1,11 +1,11 @@
 plugins {
+	id 'proguardcore.conventions'
 	id 'distribution'
 	id 'java-library'
 	id 'java-test-fixtures'
 	id 'maven-publish'
 	id 'signing'
 	id 'jacoco'
-	alias(libs.plugins.kotlin.plugin)
 	alias(libs.plugins.sonarqube)
 	alias(libs.plugins.test.logger)
 }
@@ -20,6 +20,7 @@ dependencies {
 	testImplementation(libs.bundles.kotest)
 	testImplementation(libs.jupiter.api)
 	testImplementation(libs.mockk)
+	testImplementation(libs.smali)
 	testRuntimeOnly(libs.jupiter.engine) // for junit framework
 	testFixturesImplementation(libs.smali)
 }

@@ -113,7 +113,7 @@ class CallGraphConcurrentDeterministicOrderTest : FunSpec({
         val succ2 = MethodSignature("A", "succ2", "()V")
         val succ3 = MethodSignature("A", "succ3", "()V")
 
-        val successors: Set<MethodSignature> = CallGraphWalker.getSuccessors(callGraph, startSignature)
+        val successors: Set<MethodSignature> = CallGraphWalker.getSuccessors(callGraph, startSignature, 100)
         val orderedSuccessors = successors.toList()
 
         // startSignature is always first (root of exploration), then successors in sorted order
@@ -125,7 +125,7 @@ class CallGraphConcurrentDeterministicOrderTest : FunSpec({
         val pred2 = MethodSignature("A", "predB", "()V")
         val pred3 = MethodSignature("A", "predC", "()V")
 
-        val predecessors: Set<MethodSignature> = CallGraphWalker.getPredecessors(callGraph, startSignature)
+        val predecessors: Set<MethodSignature> = CallGraphWalker.getPredecessors(callGraph, startSignature, 100)
         val orderedPredecessors = predecessors.toList()
 
         // startSignature is always first (root of exploration), then predecessors in sorted order

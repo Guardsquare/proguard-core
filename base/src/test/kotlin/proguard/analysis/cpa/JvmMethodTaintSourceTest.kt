@@ -1,11 +1,11 @@
 package proguard.analysis.cpa
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.CallResolver
 import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
+import proguard.analysis.cpa.jvm.domain.taint.JvmMethodTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.analysis.datastructure.callgraph.Call
@@ -15,7 +15,7 @@ import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
-class JvmTaintSourceTest : FreeSpec({
+class JvmMethodTaintSourceTest : BehaviorSpec({
 
     fun getSourceCall(trace: List<BamLocationDependentJvmMemoryLocation<*>>): Call {
         return trace
@@ -70,7 +70,7 @@ class JvmTaintSourceTest : FreeSpec({
     val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPoolAndCallGraph(classPool, callGraph)
 
     val taintSourceReturnLastSignature = MethodSignature("A", "source", "()Ljava/lang/String;")
-    val taintSourceReturnLast = JvmTaintSource(
+    val taintSourceReturnLast = JvmMethodTaintSource(
         taintSourceReturnLastSignature,
         { c -> callGraph.incoming[c.target]!!.maxOf { it.caller.offset } == c.caller.offset },
         false,
@@ -89,17 +89,20 @@ class JvmTaintSourceTest : FreeSpec({
 
     val mainSignature = MethodSignature("A", "main", "()V")
 
-    "Call filter selects the correct call" {
+    Given("A taint analyzer with a method taint source") {
+        When("A method calling the tainted source is analyzed") {
+            val taintAnalyzer = TaintAnalyzer
+                .Builder(interproceduralCfa, setOf(taintSourceReturnLast), setOf(taintSinkArgument))
+                .build()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
 
-        val taintAnalyzer = TaintAnalyzer
-            .Builder(interproceduralCfa, setOf(taintSourceReturnLast), setOf(taintSinkArgument))
-            .build()
-        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
 
-        interproceduralCfa.clear()
-
-        val traces = result.extractLinearTraces()
-        traces.size shouldBe 1
-        getSourceCall(traces.first()) shouldBe callGraph.incoming[taintSourceReturnLastSignature]!!.maxBy { it.caller.offset }
+            Then("The call filter selects the correct call") {
+                val traces = result.extractLinearTraces()
+                traces.size shouldBe 1
+                getSourceCall(traces.first()) shouldBe callGraph.incoming[taintSourceReturnLastSignature]!!.maxBy { it.caller.offset }
+            }
+        }
     }
 })

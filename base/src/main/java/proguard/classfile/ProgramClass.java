@@ -274,6 +274,16 @@ public class ProgramClass extends SimpleFeatureNamedProcessable implements Clazz
     }
   }
 
+  public Clazz getReferencedClass(int constantIndex) {
+    try {
+      return ((ClassConstant) constantPool[constantIndex]).referencedClass;
+    } catch (ClassCastException ex) {
+      throw ((IllegalStateException)
+          new IllegalStateException("Expected ClassConstant at index [" + constantIndex + "]")
+              .initCause(ex));
+    }
+  }
+
   public String getName(int constantIndex) {
     try {
       return ((NameAndTypeConstant) constantPool[constantIndex]).getName(this);
