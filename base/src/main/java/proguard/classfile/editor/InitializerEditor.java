@@ -128,7 +128,7 @@ public class InitializerEditor implements AttributeVisitor {
 
               // Make sure that such methods are not optimized (inlined) to prevent potential
               // overflow errors during conversion.
-              new ProcessingFlagSetter(ProcessingFlags.DONT_OPTIMIZE));
+              new ProcessingFlagSetter(ProcessingFlags.DONT_OPTIMIZE | ProcessingFlags.INJECTED));
 
       // Retrieve the newly created extra initialization method
       Method extraInitMethod =
