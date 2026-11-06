@@ -1,10 +1,14 @@
 package proguard.classfile.visitor
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import proguard.classfile.AccessConstants
+import proguard.classfile.ClassConstants
 import proguard.classfile.ClassPool
+import proguard.classfile.editor.LibraryClassBuilder
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.classfile.extensions.addMethod
@@ -38,7 +42,7 @@ class MethodCreatorTest : BehaviorSpec({
         }
     }
 
-    Given("a class which extends a class with a final method") {
+    Given("a class which extends a program class with a final method") {
 
         val (classB, methodB) = buildClass("B") {
             addMethod(accessFlags = AccessConstants.PUBLIC or AccessConstants.FINAL, name = "method", descriptor = "()V") {
@@ -57,6 +61,24 @@ class MethodCreatorTest : BehaviorSpec({
             Then("the super-method should no longer be final") {
                 (methodB.u2accessFlags) and AccessConstants.FINAL shouldBe 0
             }
+        }
+    }
+    Given("a class which extends a library class with a final method") {
+
+        val builder = LibraryClassBuilder(AccessConstants.PUBLIC, "B", ClassConstants.NAME_JAVA_LANG_OBJECT)
+        builder.addAndReturnMethod(AccessConstants.PUBLIC or AccessConstants.FINAL, "aMethod", "()V")
+        val classB = builder.libraryClass
+        val classA = buildClass("A", superName = classB.name)
+
+        val programClassPool = ClassPoolBuilder.fromClasses(classA)
+        val libraryClassPool = ClassPoolBuilder.fromClasses(classB)
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+
+        Then("The MethodCreator should throw an exception") {
+            val exc = shouldThrow<RuntimeException> {
+                classA.accept(MethodCreator(programClassPool, libraryClassPool, "aMethod", "()V", 0, 0, true))
+            }
+            exc.message shouldContain "You cannot override a final library method."
         }
     }
 })

@@ -3,6 +3,7 @@ package proguard.classfile.visitor;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
+import proguard.classfile.LibraryMethod;
 import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
@@ -85,6 +86,39 @@ public class MethodCreator implements ClassVisitor {
       return;
     }
 
+    // Find the superclass and method. Note that the hierarchy should be initialized for this.
+    Method superMethod = memberFinder.findMethod(programClass, name, descriptor);
+    Clazz superClass = memberFinder.correspondingClass();
+
+    // The super-method cannot be final. If it is defined in a library class we cannot continue.
+    if (superMethod instanceof LibraryMethod
+        && (superMethod.getAccessFlags() & AccessConstants.FINAL) != 0) {
+      throw new RuntimeException(
+          "You cannot override a final library method. "
+              + "New override: "
+              + programClass.getName()
+              + "."
+              + name
+              + descriptor
+              + ". "
+              + "Super final method: "
+              + superClass.getName()
+              + "."
+              + name
+              + descriptor
+              + ".");
+    }
+
+    // The super-method cannot be final. If it is defined in a program class we strip the final
+    // flag.
+    if (superMethod instanceof ProgramMethod
+        && (superMethod.getAccessFlags() & AccessConstants.FINAL) != 0) {
+      ((ProgramMethod) superMethod).u2accessFlags &= ~AccessConstants.FINAL;
+      // We should always call super when we are making the super-method non-final, as it was
+      // marked to not change through inheritance.
+      callSuper = true;
+    }
+
     ConstantPoolEditor constantPoolEditor = new ConstantPoolEditor(programClass);
 
     ProgramMethod method =
@@ -96,19 +130,6 @@ public class MethodCreator implements ClassVisitor {
 
     if (DEBUG) {
       System.out.println("Creating method " + programClass.getName() + "." + name + descriptor);
-    }
-
-    // Find the superclass and method. Note that the hierarchy should be initialized for this.
-    Method superMethod = memberFinder.findMethod(programClass, name, descriptor);
-    Clazz superClass = memberFinder.correspondingClass();
-
-    // The super-method cannot be final.
-    if (superMethod instanceof ProgramMethod
-        && (((ProgramMethod) superMethod).u2accessFlags & AccessConstants.FINAL) != 0) {
-      ((ProgramMethod) superMethod).u2accessFlags &= ~AccessConstants.FINAL;
-      // We should always call super when we are making the super-method non-final, as it was
-      // marked to not change through inheritance.
-      callSuper = true;
     }
 
     InstructionSequenceBuilder builder =

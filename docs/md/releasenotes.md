@@ -3,6 +3,7 @@
 ### Bugfixes
 
 - Fix `NullPointerException` in `ClassReferenceFixer` when a Kotlin metadata reference left unresolved by an incomplete class pool is dereferenced.
+- `MethodCreator` will now throw a `RuntimeException` when trying to override a final method from a library class.
 
 ## Version 9.4.1
 
