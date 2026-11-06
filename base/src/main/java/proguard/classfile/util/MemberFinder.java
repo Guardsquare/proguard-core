@@ -18,6 +18,7 @@
 package proguard.classfile.util;
 
 import proguard.classfile.*;
+import proguard.classfile.editor.LibraryClassEditor;
 import proguard.classfile.visitor.*;
 
 /**
@@ -85,17 +86,44 @@ public class MemberFinder implements MemberVisitor {
     return findMember(null, clazz, name, descriptor, isField);
   }
 
+  private void synthesizePolymorphicSignatureMethod(Clazz clazz, String name, String descriptor) {
+    if (name == null) {
+      return;
+    }
+    if (descriptor == null) {
+      return;
+    }
+    Method method =
+        clazz.findMethod(
+            name, "([Ljava/lang/Object;" + descriptor.substring(descriptor.indexOf(')')));
+    if (method == null) {
+      method = clazz.findMethod(name, "([Ljava/lang/Object;)Ljava/lang/Object;");
+    }
+    if (!(method instanceof LibraryMethod)) {
+      return;
+    }
+    LibraryMethod libraryMethod = (LibraryMethod) method;
+    if (!libraryMethod.hasPolymorphicSignature) return;
+    LibraryMethod newMethod = new LibraryMethod(libraryMethod.u2accessFlags, name, descriptor);
+    newMethod.hasPolymorphicSignature = true;
+    LibraryClass targetClass = (LibraryClass) clazz;
+    LibraryClassEditor classEditor = new LibraryClassEditor(targetClass);
+    classEditor.addMethod(newMethod);
+    this.clazz = clazz;
+    member = newMethod;
+  }
+
   /**
    * Finds the class member with the given name and descriptor in the given class or its hierarchy,
    * referenced from the optional given class. The name and descriptor may contain wildcards.
    */
   public Member findMember(
       Clazz referencingClass, Clazz clazz, String name, String descriptor, boolean isField) {
+    boolean containsWildcards =
+        (name != null && (name.indexOf('*') >= 0 || name.indexOf('?') >= 0))
+            || (descriptor != null
+                && (descriptor.indexOf('*') >= 0 || descriptor.indexOf('?') >= 0));
     try {
-      boolean containsWildcards =
-          (name != null && (name.indexOf('*') >= 0 || name.indexOf('?') >= 0))
-              || (descriptor != null
-                  && (descriptor.indexOf('*') >= 0 || descriptor.indexOf('?') >= 0));
 
       this.clazz = null;
       this.member = null;
@@ -129,6 +157,9 @@ public class MemberFinder implements MemberVisitor {
                   : new NamedMethodVisitor(name, descriptor, memberVisitor));
     } catch (MemberFoundException ex) {
       // We've found the member we were looking for.
+    }
+    if (!isField && !containsWildcards && member == null) {
+      synthesizePolymorphicSignatureMethod(clazz, name, descriptor);
     }
 
     return member;

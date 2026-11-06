@@ -34,6 +34,9 @@ public class LibraryMethod extends LibraryMember implements Method {
    */
   public Clazz[] referencedClasses;
 
+  /** Whether this method has @PolymorphicSignature annotation. */
+  public boolean hasPolymorphicSignature;
+
   /** Creates an uninitialized LibraryMethod. */
   public LibraryMethod() {}
 
