@@ -160,12 +160,13 @@ public class JsonPrinter implements PartialEvaluatorStateTracker {
 
   static StringBuilder toJson(
       @NotNull String key, Function<StringBuilder, StringBuilder> callback, StringBuilder builder) {
-    builder.append("\"").append(key).append("\":");
+    appendJsonString(key, builder);
+    builder.append(":");
     return callback.apply(builder);
   }
 
   static StringBuilder toJson(@NotNull String key, @NotNull String value, StringBuilder builder) {
-    return toJson(key, (build) -> build.append("\"").append(value).append("\""), builder);
+    return toJson(key, (build) -> appendJsonString(value, build), builder);
   }
 
   static StringBuilder toJson(@NotNull String key, int value, StringBuilder builder) {
@@ -209,11 +210,11 @@ public class JsonPrinter implements PartialEvaluatorStateTracker {
         build -> {
           build.append("[");
           if (!formattableList.isEmpty()) {
-            build.append("\"").append(formattableList.get(0)).append("\"");
+            appendJsonString(formattableList.get(0), build);
           }
           for (int index = 1; index < formattableList.size(); index++) {
-            build.append(",\"");
-            build.append(formattableList.get(index)).append("\"");
+            build.append(",");
+            appendJsonString(formattableList.get(index), build);
           }
           build.append("]");
           return build;
@@ -239,6 +240,52 @@ public class JsonPrinter implements PartialEvaluatorStateTracker {
           return build;
         },
         builder);
+  }
+
+  /**
+   * Appends the given value to the given builder as a quoted JSON string, escaping the characters
+   * that may not appear unescaped in JSON.
+   */
+  private static StringBuilder appendJsonString(String value, StringBuilder builder) {
+    if (value == null) {
+      return builder.append("null");
+    }
+
+    builder.append('"');
+    for (int index = 0; index < value.length(); index++) {
+      char character = value.charAt(index);
+      switch (character) {
+        case '"':
+          builder.append("\\\"");
+          break;
+        case '\\':
+          builder.append("\\\\");
+          break;
+        case '\b':
+          builder.append("\\b");
+          break;
+        case '\f':
+          builder.append("\\f");
+          break;
+        case '\n':
+          builder.append("\\n");
+          break;
+        case '\r':
+          builder.append("\\r");
+          break;
+        case '\t':
+          builder.append("\\t");
+          break;
+        default:
+          if (character < 0x20) {
+            // Remaining control characters are written as unicode escape sequences.
+            builder.append(String.format("\\u%04x", (int) character));
+          } else {
+            builder.append(character);
+          }
+      }
+    }
+    return builder.append('"');
   }
 
   // endregion
